@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Dashboard — Kulan Careers</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --navy:#0B2545;--blue:#1A3A6B;--cyan:#0D9488;--cyan2:#14B8A6;
+  --gold:#D97706;--gold2:#F59E0B;--amber:#FBBF24;
+  --cream:#FDFBF7;--white:#FFFFFF;--off:#F8F6F1;
+  --text:#1a1a2e;--text2:#5a6a7e;--text3:#9aabb8;
+  --border:#e8e3da;
+  --green:#16A34A;--red:#DC2626;
+  --shadow:0 4px 24px rgba(11,37,69,0.10);
+  --shadow2:0 12px 48px rgba(11,37,69,0.18);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;height:64px;display:flex;align-items:center;padding:0 32px;gap:16px;background:rgba(11,37,69,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.06);}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:900;font-size:13px;color:var(--navy);}
+.nav-name{font-size:15px;font-weight:700;color:#fff;}
+.nav-sub{font-size:10px;color:rgba(255,255,255,0.4);}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.nav-user{font-size:13px;color:rgba(255,255,255,0.6);}
+.nav-btn{padding:8px 18px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;border:none;}
+.nav-view{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);}
+.nav-view:hover{background:rgba(255,255,255,0.14);color:#fff;}
+.nav-logout{background:rgba(220,38,38,0.15);color:#fca5a5;border:1px solid rgba(220,38,38,0.2);}
+.nav-logout:hover{background:rgba(220,38,38,0.25);}
+
+.layout{display:grid;grid-template-columns:240px 1fr;min-height:100vh;padding-top:64px;}
+.sidebar{background:var(--white);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;}
+.sidebar-section{padding:0 16px;margin-bottom:8px;}
+.sidebar-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);padding:0 8px;margin-bottom:6px;}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;cursor:pointer;transition:all .15s;margin-bottom:2px;font-size:13px;font-weight:500;color:var(--text2);text-decoration:none;}
+.sidebar-link:hover{background:rgba(13,148,136,0.06);color:var(--navy);}
+.sidebar-link.active{background:rgba(13,148,136,0.1);color:var(--cyan);font-weight:600;}
+.sidebar-link-icon{font-size:16px;width:20px;text-align:center;}
+.sidebar-badge{margin-left:auto;font-size:10px;font-weight:700;background:var(--cyan);color:#fff;padding:2px 7px;border-radius:20px;}
+
+.main{padding:32px;max-width:900px;}
+.page-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+.page-sub{font-size:13px;color:var(--text2);margin-bottom:28px;}
+
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:28px;}
+.stat-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow);}
+.stat-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--navy);margin-bottom:2px;}
+.stat-label{font-size:12px;color:var(--text2);}
+
+.section{display:none;}
+.section.active{display:block;}
+
+/* JOB CARDS */
+.job-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:18px 22px;margin-bottom:12px;box-shadow:var(--shadow);transition:all .2s;}
+.job-card:hover{border-color:rgba(13,148,136,0.3);}
+.jc-top{display:flex;align-items:flex-start;gap:14px;}
+.jc-logo{width:46px;height:46px;border-radius:12px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--navy),var(--blue));}
+.jc-body{flex:1;min-width:0;}
+.jc-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:2px;}
+.jc-company{font-size:12px;color:var(--text2);margin-bottom:8px;}
+.jc-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.jc-tag{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;background:var(--off);border:1px solid var(--border);color:var(--text2);}
+.jc-tag.type{background:rgba(13,148,136,0.07);color:var(--cyan);border-color:rgba(13,148,136,0.2);}
+.jc-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;}
+.jc-salary{font-size:13px;font-weight:700;color:var(--cyan);}
+.jc-actions{display:flex;gap:6px;margin-top:12px;}
+.btn-sm{padding:7px 14px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;}
+.btn-view{background:var(--navy);color:#fff;}
+.btn-view:hover{background:var(--blue);}
+.btn-unsave{background:rgba(220,38,38,0.08);color:var(--red);border:1px solid rgba(220,38,38,0.2);}
+.btn-unsave:hover{background:rgba(220,38,38,0.15);}
+.btn-share{background:var(--off);color:var(--text2);border:1px solid var(--border);}
+.btn-share:hover{border-color:var(--cyan);color:var(--cyan);}
+
+/* CLOSING SOON */
+.closing-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(217,119,6,0.1);color:var(--gold);}
+
+/* APPLICATION TRACKER */
+.app-card{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:18px 22px;margin-bottom:12px;box-shadow:var(--shadow);}
+.app-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.app-title{font-size:15px;font-weight:700;color:var(--navy);}
+.app-company{font-size:12px;color:var(--text2);margin-top:2px;}
+.app-date{font-size:11px;color:var(--text3);}
+.status-select{padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--white);font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:var(--text);outline:none;cursor:pointer;transition:border .2s;}
+.status-select:focus{border-color:var(--cyan);}
+.app-notes{width:100%;padding:8px 12px;border-radius:8px;border:1.5px solid var(--border);background:var(--off);font-family:'Outfit',sans-serif;font-size:12px;color:var(--text);outline:none;resize:none;min-height:56px;margin-top:10px;transition:border .2s;}
+.app-notes:focus{border-color:var(--cyan);background:var(--white);}
+.pipeline{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+.pipeline-step{font-size:10px;font-weight:700;padding:4px 12px;border-radius:20px;border:1.5px solid var(--border);color:var(--text3);transition:all .2s;}
+.pipeline-step.done{background:rgba(13,148,136,0.1);border-color:rgba(13,148,136,0.3);color:var(--cyan);}
+.pipeline-step.current{background:var(--navy);border-color:var(--navy);color:#fff;}
+
+/* PROFILE */
+.profile-card{background:var(--white);border:1.5px solid var(--border);border-radius:20px;padding:28px;box-shadow:var(--shadow);}
+.form-group{margin-bottom:16px;}
+.form-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);display:block;margin-bottom:6px;}
+.form-input,.form-textarea{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'Outfit',sans-serif;font-size:13px;color:var(--text);outline:none;transition:border .2s;}
+.form-input:focus,.form-textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(13,148,136,0.1);}
+.form-textarea{resize:vertical;min-height:90px;line-height:1.65;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn-primary{padding:12px 26px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;font-family:'Outfit',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-primary:hover{box-shadow:var(--shadow2);transform:translateY(-1px);}
+
+/* ALERTS */
+.alert-form{background:var(--white);border:1.5px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow);}
+.alert-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);}
+.alert-row:last-child{border-bottom:none;}
+.alert-label{font-size:13px;font-weight:500;color:var(--navy);}
+.alert-sub{font-size:11px;color:var(--text3);}
+.toggle{position:relative;width:42px;height:24px;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;cursor:pointer;inset:0;background:var(--border);border-radius:24px;transition:.3s;}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.3s;}
+.toggle input:checked + .toggle-slider{background:var(--cyan);}
+.toggle input:checked + .toggle-slider::before{transform:translateX(18px);}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text3);}
+.empty-icon{font-size:44px;margin-bottom:14px;opacity:.4;display:block;}
+
+.notif{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);background:var(--navy);border-radius:10px;padding:11px 22px;font-size:13px;font-weight:600;color:#fff;z-index:999;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap;}
+.notif.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.notif.success{background:#14532d;}
+.notif.error{background:#7f1d1d;}
+
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:6px;}
+.hamburger span{display:block;width:20px;height:2px;background:rgba(255,255,255,0.7);border-radius:2px;}
+
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr;}
+  .sidebar{display:none;position:fixed;top:64px;left:0;bottom:0;z-index:90;width:240px;box-shadow:var(--shadow2);}
+  .sidebar.open{display:block;}
+  .hamburger{display:flex;}
+  .main{padding:20px 16px;}
+  .form-row{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:1fr 1fr;}
+  .jc-right{display:none;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="hamburger" onclick="toggleSidebar()">
+    <span></span><span></span><span></span>
+  </div>
+  <a href="careers-index.html" class="nav-brand">
+    <div class="nav-logo">KC</div>
+    <div>
+      <div class="nav-name">Kulan Careers</div>
+      <div class="nav-sub">My Dashboard</div>
+    </div>
+  </a>
+  <div class="nav-right">
+    <span class="nav-user" id="navUser"></span>
+    <button class="nav-btn nav-view" onclick="window.location.href='careers-index.html'">Browse Jobs</button>
+    <button class="nav-btn nav-logout" onclick="doLogout()">Sign Out</button>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">My Activity</div>
+      <a class="sidebar-link active" data-section="overview" onclick="showSection('overview',this)">
+        <span class="sidebar-link-icon">&#9681;</span> Overview
+      </a>
+      <a class="sidebar-link" data-section="saved" onclick="showSection('saved',this)">
+        <span class="sidebar-link-icon">&#10084;</span> Saved Jobs
+        <span class="sidebar-badge" id="savedBadge">0</span>
+      </a>
+      <a class="sidebar-link" data-section="applications" onclick="showSection('applications',this)">
+        <span class="sidebar-link-icon">&#128203;</span> Applications
+        <span class="sidebar-badge" id="appsBadge">0</span>
+      </a>
+      <a class="sidebar-link" data-section="alerts" onclick="showSection('alerts',this)">
+        <span class="sidebar-link-icon">&#128276;</span> Job Alerts
+      </a>
+    </div>
+    <div class="sidebar-section" style="margin-top:8px;">
+      <div class="sidebar-label">Account</div>
+      <a class="sidebar-link" data-section="profile" onclick="showSection('profile',this)">
+        <span class="sidebar-link-icon">&#128100;</span> My Profile
+      </a>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <div class="section active" id="section-overview">
+      <div class="page-title" id="overviewTitle">My Dashboard</div>
+      <div class="page-sub">Track your job search from one place</div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-num" id="statSaved">0</div><div class="stat-label">Saved Jobs</div></div>
+        <div class="stat-card"><div class="stat-num" id="statApplied">0</div><div class="stat-label">Applied</div></div>
+        <div class="stat-card"><div class="stat-num" id="statInterviewing">0</div><div class="stat-label">Interviewing</div></div>
+        <div class="stat-card"><div class="stat-num" id="statOffered">0</div><div class="stat-label">Offers</div></div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="window.location.href='careers-index.html'">&#128269; Browse Jobs</button>
+        <button class="btn-primary" style="background:linear-gradient(135deg,var(--cyan),var(--cyan2));" onclick="showSection('applications',document.querySelector('[data-section=applications]'))">View Applications</button>
+      </div>
+    </div>
+
+    <!-- SAVED JOBS -->
+    <div class="section" id="section-saved">
+      <div class="page-title">Saved Jobs</div>
+      <div class="page-sub">Jobs you have bookmarked</div>
+      <div id="savedList">
+        <div class="empty"><span class="empty-icon">&#10084;</span>No saved jobs yet. Browse the board and save roles you like!</div>
+      </div>
+    </div>
+
+    <!-- APPLICATIONS -->
+    <div class="section" id="section-applications">
+      <div class="page-title">Application Tracker</div>
+      <div class="page-sub">Track where you are in each process</div>
+      <div style="margin-bottom:16px;">
+        <button class="btn-primary" style="font-size:13px;padding:10px 20px;" onclick="openAddAppModal()">&#10010; Log an Application</button>
+      </div>
+      <div id="appsList">
+        <div class="empty"><span class="empty-icon">&#128203;</span>No applications tracked yet. Log your first application!</div>
+      </div>
+    </div>
+
+    <!-- JOB ALERTS -->
+    <div class="section" id="section-alerts">
+      <div class="page-title">Job Alerts</div>
+      <div class="page-sub">Get notified when new jobs match your interests</div>
+      <div class="alert-form" style="margin-bottom:16px;">
+        <div class="form-group">
+          <label class="form-label">Your Email</label>
+          <input class="form-input" id="alertEmail" type="email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Job Category</label>
+          <select class="form-input" id="alertCategory">
+            <option value="">All Categories</option>
+            <option value="technology">Technology</option>
+            <option value="cybersecurity">Cybersecurity</option>
+            <option value="finance">Finance</option>
+            <option value="education">Education</option>
+            <option value="healthcare">Healthcare</option>
+            <option value="business">Business</option>
+            <option value="community">Community</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Job Type</label>
+          <select class="form-input" id="alertType">
+            <option value="">Any Type</option>
+            <option value="full-time">Full-time</option>
+            <option value="remote">Remote</option>
+            <option value="contract">Contract</option>
+            <option value="part-time">Part-time</option>
+            <option value="internship">Internship</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Keywords</label>
+          <input class="form-input" id="alertKeywords" placeholder="e.g. Cybersecurity, Python, Columbus">
+        </div>
+        <button class="btn-primary" onclick="subscribeAlert()">&#128276; Subscribe to Alerts</button>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="section" id="section-profile">
+      <div class="page-title">My Profile</div>
+      <div class="page-sub">Help employers find you</div>
+      <div class="profile-card">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Full Name</label><input class="form-input" id="profName" placeholder="Your full name"></div>
+          <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="profLocation" placeholder="City, State"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Professional Headline</label><input class="form-input" id="profHeadline" placeholder="e.g. IT Support Specialist seeking cybersecurity roles"></div>
+        <div class="form-group"><label class="form-label">Bio</label><textarea class="form-textarea" id="profBio" placeholder="Tell employers about yourself..."></textarea></div>
+        <div class="form-group"><label class="form-label">Skills (comma separated)</label><input class="form-input" id="profSkills" placeholder="e.g. Python, Security+, Networking"></div>
+        <div class="form-group"><label class="form-label">LinkedIn URL</label><input class="form-input" id="profLinkedin" placeholder="https://linkedin.com/in/yourprofile"></div>
+        <button class="btn-primary" onclick="saveProfile()">Save Profile</button>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD APPLICATION MODAL -->
+<div id="addAppOverlay" style="display:none;position:fixed;inset:0;background:rgba(11,37,69,0.5);z-index:300;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);">
+  <div style="background:var(--white);border-radius:20px;max-width:480px;width:100%;padding:28px;box-shadow:var(--shadow2);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--navy);">Log Application</div>
+      <button onclick="closeAddAppModal()" style="background:none;border:none;font-size:22px;color:var(--text3);cursor:pointer;">&#215;</button>
+    </div>
+    <div class="form-group"><label class="form-label">Job Title *</label><input class="form-input" id="appTitle" placeholder="e.g. SOC Analyst"></div>
+    <div class="form-group"><label class="form-label">Company *</label><input class="form-input" id="appCompany" placeholder="Company name"></div>
+    <div class="form-group"><label class="form-label">Status</label>
+      <select class="form-input" id="appStatus">
+        <option value="applied">Applied</option>
+        <option value="interviewing">Interviewing</option>
+        <option value="offered">Offered</option>
+        <option value="rejected">Rejected</option>
+        <option value="withdrawn">Withdrawn</option>
+      </select>
+    </div>
+    <div class="form-group"><label class="form-label">Notes</label><textarea class="form-textarea" id="appNotes" placeholder="Add notes about this application..." style="min-height:70px;"></textarea></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn-primary" style="flex:1;" onclick="logApplication()">Log Application</button>
+      <button onclick="closeAddAppModal()" style="padding:12px 20px;border-radius:11px;border:1.5px solid var(--border);background:transparent;color:var(--text2);font-family:'Outfit',sans-serif;font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<script>
+const SUPABASE_URL = 'https://xkadqvmqxdyqoddiypet.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VVERiS7NeHDtlXJqJX8Jtg_K2UNsctv';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var _user = null;
+var _savedJobs = [];
+var _applications = [];
+
+sb.auth.getSession().then(async function(r) {
+  if (!r.data.session) { window.location.href = 'careers-auth.html'; return; }
+  _user = r.data.session.user;
+  document.getElementById('navUser').textContent = _user.email;
+  document.getElementById('alertEmail').value = _user.email;
+  await loadProfile();
+  await loadSavedJobs();
+  await loadApplications();
+  updateStats();
+});
+
+async function loadProfile() {
+  var { data } = await sb.from('careers_profiles').select('*').eq('id', _user.id).single();
+  if (data) {
+    var name = data.full_name || _user.email;
+    document.getElementById('overviewTitle').textContent = 'Welcome, ' + name.split(' ')[0];
+    document.getElementById('profName').value     = data.full_name || '';
+    document.getElementById('profLocation').value = data.location || '';
+    document.getElementById('profHeadline').value = data.headline || '';
+    document.getElementById('profBio').value      = data.bio || '';
+    document.getElementById('profSkills').value   = data.skills ? data.skills.join(', ') : '';
+    document.getElementById('profLinkedin').value = data.linkedin_url || '';
+  }
+}
+
+async function loadSavedJobs() {
+  var { data } = await sb.from('careers_saved')
+    .select('*, careers_jobs(*)')
+    .eq('user_id', _user.id)
+    .order('created_at', { ascending: false });
+  _savedJobs = data || [];
+  document.getElementById('savedBadge').textContent = _savedJobs.length;
+  renderSavedJobs();
+}
+
+async function loadApplications() {
+  var { data } = await sb.from('careers_applications')
+    .select('*')
+    .eq('user_id', _user.id)
+    .order('applied_at', { ascending: false });
+  _applications = data || [];
+  document.getElementById('appsBadge').textContent = _applications.length;
+  renderApplications();
+}
+
+function updateStats() {
+  document.getElementById('statSaved').textContent       = _savedJobs.length;
+  document.getElementById('statApplied').textContent     = _applications.filter(function(a){ return a.status === 'applied'; }).length;
+  document.getElementById('statInterviewing').textContent= _applications.filter(function(a){ return a.status === 'interviewing'; }).length;
+  document.getElementById('statOffered').textContent     = _applications.filter(function(a){ return a.status === 'offered'; }).length;
+}
+
+function renderSavedJobs() {
+  var list = document.getElementById('savedList');
+  if (!_savedJobs.length) {
+    list.innerHTML = '<div class="empty"><span class="empty-icon">&#10084;</span>No saved jobs yet. Browse the board and bookmark roles you like!</div>';
+    return;
+  }
+  list.innerHTML = _savedJobs.map(function(s) {
+    var j = s.careers_jobs;
+    if (!j) return '';
+    var salary = salaryStr(j);
+    var days = j.closes_at ? Math.ceil((new Date(j.closes_at) - new Date()) / 86400000) : null;
+    var closingBadge = (days !== null && days <= 5 && days >= 0)
+      ? '<span class="closing-badge">Closing in ' + days + 'd</span>' : '';
+    return '<div class="job-card">'+
+      '<div class="jc-top">'+
+        '<div class="jc-logo">'+j.company.charAt(0)+'</div>'+
+        '<div class="jc-body">'+
+          '<div class="jc-title">'+esc(j.title)+'</div>'+
+          '<div class="jc-company">'+esc(j.company)+' &middot; '+esc(j.location)+'</div>'+
+          '<div class="jc-meta">'+
+            '<span class="jc-tag type">'+j.type+'</span>'+
+            (salary !== 'Not listed' ? '<span class="jc-tag">'+salary+'</span>' : '')+
+            closingBadge+
+          '</div>'+
+        '</div>'+
+        '<div class="jc-right"><div class="jc-salary">'+salary+'</div></div>'+
+      '</div>'+
+      '<div class="jc-actions">'+
+        '<button class="btn-sm btn-view" onclick="window.open(\'careers-index.html#job-'+j.id+'\',\'_blank\')">View Job</button>'+
+        '<button class="btn-sm btn-share" onclick="shareJob(\''+esc(j.title)+'\',\''+j.id+'\')">&#128257; Share</button>'+
+        '<button class="btn-sm" style="background:rgba(13,148,136,0.08);color:var(--cyan);border:1px solid rgba(13,148,136,0.2);" onclick="quickApply(\''+j.id+'\',\''+esc(j.title)+'\',\''+esc(j.company)+'\')">Mark Applied</button>'+
+        '<button class="btn-sm btn-unsave" onclick="unsaveJob(\''+s.id+'\')">&#128149; Remove</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+function renderApplications() {
+  var list = document.getElementById('appsList');
+  if (!_applications.length) {
+    list.innerHTML = '<div class="empty"><span class="empty-icon">&#128203;</span>No applications tracked yet.</div>';
+    return;
+  }
+  var stages = ['applied','interviewing','offered','rejected'];
+  list.innerHTML = _applications.map(function(a) {
+    return '<div class="app-card">'+
+      '<div class="app-header">'+
+        '<div>'+
+          '<div class="app-title">'+esc(a.title||'Unknown Role')+'</div>'+
+          '<div class="app-company">'+esc(a.company||'')+'</div>'+
+        '</div>'+
+        '<div style="text-align:right;">'+
+          '<select class="status-select" onchange="updateAppStatus(\''+a.id+'\',this.value)">'+
+            stages.map(function(s){ return '<option value="'+s+'"'+(a.status===s?' selected':'')+'>'+s.charAt(0).toUpperCase()+s.slice(1)+'</option>'; }).join('')+
+            '<option value="withdrawn"'+(a.status==='withdrawn'?' selected':'')+'>Withdrawn</option>'+
+          '</select>'+
+          '<div class="app-date" style="margin-top:4px;">'+relDate(a.applied_at)+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="pipeline">'+
+        stages.map(function(s){
+          var idx = stages.indexOf(a.status);
+          var thisIdx = stages.indexOf(s);
+          var cls = thisIdx < idx ? 'done' : (s === a.status ? 'current' : '');
+          return '<span class="pipeline-step '+cls+'">'+s+'</span>';
+        }).join('')+
+      '</div>'+
+      '<textarea class="app-notes" placeholder="Add notes..." onblur="saveAppNotes(\''+a.id+'\',this.value)">'+esc(a.notes||'')+'</textarea>'+
+      '<div style="margin-top:8px;text-align:right;"><button onclick="deleteApp(\''+a.id+'\')" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;">Remove</button></div>'+
+    '</div>';
+  }).join('');
+}
+
+async function unsaveJob(savedId) {
+  await sb.from('careers_saved').delete().eq('id', savedId);
+  _savedJobs = _savedJobs.filter(function(s){ return s.id !== savedId; });
+  document.getElementById('savedBadge').textContent = _savedJobs.length;
+  document.getElementById('statSaved').textContent  = _savedJobs.length;
+  renderSavedJobs();
+  showNotif('Job removed from saved.', 'success');
+}
+
+async function quickApply(jobId, title, company) {
+  var { error } = await sb.from('careers_applications').upsert({
+    user_id: _user.id, job_id: jobId, title: title, company: company, status: 'applied', applied_at: new Date().toISOString()
+  }, { onConflict: 'user_id,job_id' });
+  if (error && !error.message.includes('unique')) { showNotif('Error.', 'error'); return; }
+  showNotif('Marked as applied!', 'success');
+  await loadApplications(); updateStats();
+}
+
+async function updateAppStatus(appId, status) {
+  await sb.from('careers_applications').update({ status, updated_at: new Date().toISOString() }).eq('id', appId);
+  var app = _applications.find(function(a){ return a.id === appId; });
+  if (app) app.status = status;
+  renderApplications(); updateStats();
+}
+
+async function saveAppNotes(appId, notes) {
+  await sb.from('careers_applications').update({ notes, updated_at: new Date().toISOString() }).eq('id', appId);
+}
+
+async function deleteApp(appId) {
+  if (!confirm('Remove this application from your tracker?')) return;
+  await sb.from('careers_applications').delete().eq('id', appId);
+  _applications = _applications.filter(function(a){ return a.id !== appId; });
+  document.getElementById('appsBadge').textContent = _applications.length;
+  renderApplications(); updateStats();
+}
+
+function openAddAppModal() {
+  document.getElementById('addAppOverlay').style.display = 'flex';
+}
+function closeAddAppModal() {
+  document.getElementById('addAppOverlay').style.display = 'none';
+  ['appTitle','appCompany','appNotes'].forEach(function(id){ document.getElementById(id).value = ''; });
+}
+
+async function logApplication() {
+  var title   = document.getElementById('appTitle').value.trim();
+  var company = document.getElementById('appCompany').value.trim();
+  if (!title || !company) { showNotif('Enter job title and company.', 'error'); return; }
+  var { error } = await sb.from('careers_applications').insert({
+    user_id:    _user.id,
+    title,
+    company,
+    status:     document.getElementById('appStatus').value,
+    notes:      document.getElementById('appNotes').value.trim(),
+    applied_at: new Date().toISOString()
+  });
+  if (error) { showNotif('Error: ' + error.message, 'error'); return; }
+  showNotif('Application logged!', 'success');
+  closeAddAppModal();
+  await loadApplications(); updateStats();
+}
+
+async function saveProfile() {
+  var skills = document.getElementById('profSkills').value.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+  var payload = {
+    id:          _user.id,
+    full_name:   document.getElementById('profName').value.trim(),
+    location:    document.getElementById('profLocation').value.trim(),
+    headline:    document.getElementById('profHeadline').value.trim(),
+    bio:         document.getElementById('profBio').value.trim(),
+    skills:      skills.length ? skills : null,
+    linkedin_url:document.getElementById('profLinkedin').value.trim(),
+    role:        'seeker',
+    updated_at:  new Date().toISOString()
+  };
+  var { error } = await sb.from('careers_profiles').upsert(payload);
+  if (error) { showNotif('Error saving profile.', 'error'); return; }
+  showNotif('Profile saved!', 'success');
+}
+
+async function subscribeAlert() {
+  var email    = document.getElementById('alertEmail').value.trim();
+  var category = document.getElementById('alertCategory').value;
+  var type     = document.getElementById('alertType').value;
+  var keywords = document.getElementById('alertKeywords').value.trim();
+  if (!email) { showNotif('Enter your email.', 'error'); return; }
+  var res = await fetch('https://formspree.io/f/xeepavdd', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+    body: JSON.stringify({ subject: 'Job Alert Subscription', email, category: category || 'All', type: type || 'Any', keywords: keywords || 'None' })
+  }).catch(function(){ return { ok: false }; });
+  showNotif('Alert subscribed! We will notify you at ' + email, 'success');
+}
+
+function shareJob(title, jobId) {
+  var url = window.location.origin + '/careers-index.html?job=' + jobId;
+  if (navigator.share) {
+    navigator.share({ title: title + ' — Kulan Careers', url });
+  } else if (navigator.clipboard) {
+    navigator.clipboard.writeText(url);
+    showNotif('Link copied to clipboard!', 'success');
+  }
+}
+
+function showSection(name, el) {
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  document.querySelectorAll('.sidebar-link').forEach(function(l){ l.classList.remove('active'); });
+  document.getElementById('section-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  window.location.href = 'careers-auth.html';
+}
+
+function salaryStr(j) {
+  if (j.salary_min && j.salary_max) return '$'+k(j.salary_min)+'-$'+k(j.salary_max)+'/yr';
+  if (j.salary_min) return 'From $'+k(j.salary_min)+'/yr';
+  if (j.salary_max) return 'Up to $'+k(j.salary_max)+'/yr';
+  return 'Not listed';
+}
+function k(n){ return n >= 1000 ? Math.round(n/1000)+'k' : n; }
+function relDate(ts){ if(!ts) return ''; var d=Math.floor((Date.now()-new Date(ts))/86400000); return d===0?'Today':d===1?'Yesterday':d+'d ago'; }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showNotif(msg,type){ var el=document.getElementById('notif'); el.textContent=msg; el.className='notif show'+(type?' '+type:''); clearTimeout(el._t); el._t=setTimeout(function(){ el.classList.remove('show'); },4000); }
+</script>
+</body>
+</html>

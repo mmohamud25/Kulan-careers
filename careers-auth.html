@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — Kulan Careers</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --navy:#0B2545; --blue:#1A3A6B; --cyan:#0D9488; --cyan2:#14B8A6;
+  --gold:#D97706; --gold2:#F59E0B; --amber:#FBBF24;
+  --cream:#FDFBF7; --white:#FFFFFF; --off:#F8F6F1;
+  --text:#1a1a2e; --text2:#5a6a7e; --text3:#9aabb8;
+  --border:#e8e3da; --shadow:0 4px 24px rgba(11,37,69,0.10);
+  --shadow2:0 12px 48px rgba(11,37,69,0.18);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'Outfit',sans-serif;background:var(--navy);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden;}
+.bg-pattern{position:absolute;inset:0;opacity:0.04;background-image:repeating-linear-gradient(45deg,#fff 0,#fff 1px,transparent 0,transparent 50%),repeating-linear-gradient(-45deg,#fff 0,#fff 1px,transparent 0,transparent 50%);background-size:40px 40px;}
+.bg-glow{position:absolute;right:-200px;top:-200px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(13,148,136,0.15) 0%,transparent 65%);pointer-events:none;}
+.bg-glow2{position:absolute;left:-100px;bottom:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(217,119,6,0.1) 0%,transparent 65%);pointer-events:none;}
+
+.card{position:relative;z-index:1;background:var(--white);border-radius:24px;width:100%;max-width:480px;box-shadow:var(--shadow2);overflow:hidden;}
+.card-header{background:var(--navy);padding:32px 36px 28px;border-bottom:1px solid rgba(255,255,255,0.06);}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:24px;text-decoration:none;}
+.brand-logo{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--gold),var(--amber));display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-weight:900;font-size:14px;color:var(--navy);}
+.brand-name{font-size:16px;font-weight:700;color:#fff;}
+.brand-sub{font-size:11px;color:rgba(255,255,255,0.4);}
+.card-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:6px;}
+.card-sub{font-size:13px;color:rgba(255,255,255,0.5);}
+
+.card-body{padding:32px 36px;}
+
+/* Role selector */
+.role-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px;}
+.role-tab{padding:12px 16px;border-radius:12px;border:1.5px solid var(--border);background:var(--off);cursor:pointer;transition:all .2s;text-align:center;}
+.role-tab:hover{border-color:var(--cyan);background:rgba(13,148,136,0.04);}
+.role-tab.active{border-color:var(--cyan);background:rgba(13,148,136,0.08);}
+.role-tab-icon{font-size:20px;margin-bottom:4px;}
+.role-tab-label{font-size:13px;font-weight:600;color:var(--navy);}
+.role-tab-sub{font-size:10px;color:var(--text3);}
+
+/* Auth toggle */
+.auth-toggle{display:flex;background:var(--off);border-radius:10px;padding:4px;margin-bottom:24px;}
+.auth-btn{flex:1;padding:9px;border-radius:8px;border:none;background:transparent;font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;}
+.auth-btn.active{background:var(--white);color:var(--navy);box-shadow:0 2px 8px rgba(11,37,69,0.1);}
+
+/* Form */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);display:block;margin-bottom:6px;}
+.form-input{width:100%;padding:11px 14px;border-radius:10px;border:1.5px solid var(--border);background:var(--white);font-family:'Outfit',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border .2s;}
+.form-input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(13,148,136,0.1);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.submit-btn{width:100%;padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--navy),var(--blue));color:#fff;font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:8px;}
+.submit-btn:hover{box-shadow:0 8px 24px rgba(11,37,69,0.3);transform:translateY(-1px);}
+.submit-btn:disabled{opacity:0.6;transform:none;cursor:not-allowed;}
+
+.divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:var(--text3);font-size:12px;}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.switch-text{text-align:center;font-size:13px;color:var(--text2);margin-top:16px;}
+.switch-link{color:var(--cyan);font-weight:600;cursor:pointer;text-decoration:none;}
+.switch-link:hover{text-decoration:underline;}
+
+.error-msg{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none;}
+.success-msg{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px;display:none;}
+
+.back-link{text-align:center;margin-top:20px;}
+.back-link a{color:rgba(255,255,255,0.4);font-size:12px;text-decoration:none;}
+.back-link a:hover{color:rgba(255,255,255,0.7);}
+
+@media(max-width:480px){
+  .card-header,.card-body{padding:24px 20px;}
+  .form-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+<div class="bg-pattern"></div>
+<div class="bg-glow"></div>
+<div class="bg-glow2"></div>
+
+<div class="card">
+  <div class="card-header">
+    <a href="careers-index.html" class="brand">
+      <div class="brand-logo">KC</div>
+      <div>
+        <div class="brand-name">Kulan Careers</div>
+        <div class="brand-sub">by Kulan Group Ltd</div>
+      </div>
+    </a>
+    <div class="card-title" id="cardTitle">Welcome back</div>
+    <div class="card-sub" id="cardSub">Sign in to your account</div>
+  </div>
+
+  <div class="card-body">
+    <!-- Role selector (signup only) -->
+    <div id="roleSection" style="display:none;">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text2);margin-bottom:10px;">I am a</div>
+      <div class="role-tabs">
+        <div class="role-tab active" id="roleSeeker" onclick="setRole('seeker')">
+          <div class="role-tab-icon">&#128188;</div>
+          <div class="role-tab-label">Job Seeker</div>
+          <div class="role-tab-sub">Find opportunities</div>
+        </div>
+        <div class="role-tab" id="roleEmployer" onclick="setRole('employer')">
+          <div class="role-tab-icon">&#127970;</div>
+          <div class="role-tab-label">Employer</div>
+          <div class="role-tab-sub">Post jobs</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login / Signup toggle -->
+    <div class="auth-toggle">
+      <button class="auth-btn active" id="btnLogin" onclick="showLogin()">Sign In</button>
+      <button class="auth-btn" id="btnSignup" onclick="showSignup()">Create Account</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="success-msg" id="successMsg"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="submit-btn" id="loginBtn" onclick="doLogin()">Sign In</button>
+      <div class="switch-text" style="margin-top:12px;">
+        <a href="#" class="switch-link" onclick="showForgot()">Forgot password?</a>
+      </div>
+    </div>
+
+    <!-- SIGNUP FORM -->
+    <div id="signupForm" style="display:none;">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">First Name</label>
+          <input class="form-input" type="text" id="signupFirst" placeholder="Ada">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Last Name</label>
+          <input class="form-input" type="text" id="signupLast" placeholder="Lovelace">
+        </div>
+      </div>
+      <div class="form-group" id="companyField" style="display:none;">
+        <label class="form-label">Company Name</label>
+        <input class="form-input" type="text" id="signupCompany" placeholder="Acme Corp">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="signupEmail" placeholder="you@example.com" autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input class="form-input" type="password" id="signupPassword" placeholder="Min 8 characters" autocomplete="new-password">
+      </div>
+      <button class="submit-btn" id="signupBtn" onclick="doSignup()">Create Account</button>
+    </div>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <div id="forgotForm" style="display:none;">
+      <p style="font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.7;">Enter your email and we will send you a reset link.</p>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input class="form-input" type="email" id="forgotEmail" placeholder="you@example.com">
+      </div>
+      <button class="submit-btn" onclick="doForgot()">Send Reset Link</button>
+      <div class="switch-text"><a href="#" class="switch-link" onclick="showLogin()">Back to sign in</a></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="back-link"><a href="careers-index.html">&#8592; Back to job board</a></div>
+
+<script>
+const SUPABASE_URL = 'https://xkadqvmqxdyqoddiypet.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_VVERiS7NeHDtlXJqJX8Jtg_K2UNsctv';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var _role = 'seeker';
+var _mode = 'login';
+
+// Check if already logged in
+sb.auth.getSession().then(function(r) {
+  if (r.data.session) redirectByRole(r.data.session.user);
+});
+
+// Check URL params for mode
+var params = new URLSearchParams(window.location.search);
+if (params.get('mode') === 'signup') showSignup();
+if (params.get('role') === 'employer') { showSignup(); setRole('employer'); }
+
+function setRole(role) {
+  _role = role;
+  document.getElementById('roleSeeker').classList.toggle('active', role === 'seeker');
+  document.getElementById('roleEmployer').classList.toggle('active', role === 'employer');
+  document.getElementById('companyField').style.display = role === 'employer' ? 'block' : 'none';
+}
+
+function showLogin() {
+  _mode = 'login';
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('signupForm').style.display = 'none';
+  document.getElementById('forgotForm').style.display = 'none';
+  document.getElementById('roleSection').style.display = 'none';
+  document.getElementById('btnLogin').classList.add('active');
+  document.getElementById('btnSignup').classList.remove('active');
+  document.getElementById('cardTitle').textContent = 'Welcome back';
+  document.getElementById('cardSub').textContent = 'Sign in to your account';
+  clearMsgs();
+}
+
+function showSignup() {
+  _mode = 'signup';
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+  document.getElementById('forgotForm').style.display = 'none';
+  document.getElementById('roleSection').style.display = 'block';
+  document.getElementById('btnLogin').classList.remove('active');
+  document.getElementById('btnSignup').classList.add('active');
+  document.getElementById('cardTitle').textContent = 'Create account';
+  document.getElementById('cardSub').textContent = 'Join Kulan Careers today';
+  clearMsgs();
+}
+
+function showForgot() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('forgotForm').style.display = 'block';
+  document.getElementById('cardTitle').textContent = 'Reset password';
+  document.getElementById('cardSub').textContent = 'We will send you a link';
+  clearMsgs();
+}
+
+async function doLogin() {
+  var email = document.getElementById('loginEmail').value.trim();
+  var pass  = document.getElementById('loginPassword').value;
+  if (!email || !pass) { showError('Please fill in all fields.'); return; }
+  setLoading('loginBtn', true);
+  var { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+  setLoading('loginBtn', false);
+  if (error) { showError(error.message); return; }
+  redirectByRole(data.user);
+}
+
+async function doSignup() {
+  var first   = document.getElementById('signupFirst').value.trim();
+  var last    = document.getElementById('signupLast').value.trim();
+  var email   = document.getElementById('signupEmail').value.trim();
+  var pass    = document.getElementById('signupPassword').value;
+  var company = document.getElementById('signupCompany').value.trim();
+  if (!first || !last || !email || !pass) { showError('Please fill in all required fields.'); return; }
+  if (pass.length < 8) { showError('Password must be at least 8 characters.'); return; }
+  setLoading('signupBtn', true);
+  var meta = { full_name: first + ' ' + last, role: _role };
+  if (_role === 'employer' && company) meta.company_name = company;
+  var { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: meta } });
+  setLoading('signupBtn', false);
+  if (error) { showError(error.message); return; }
+  showSuccess('Account created! Check your email to confirm, then sign in.');
+}
+
+async function doForgot() {
+  var email = document.getElementById('forgotEmail').value.trim();
+  if (!email) { showError('Please enter your email.'); return; }
+  var { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/reset-password.html' });
+  if (error) { showError(error.message); return; }
+  showSuccess('Reset link sent. Check your email.');
+}
+
+async function redirectByRole(user) {
+  var { data } = await sb.from('careers_profiles').select('role').eq('id', user.id).single();
+  var role = data ? data.role : (user.user_metadata && user.user_metadata.role) || 'seeker';
+  if (role === 'employer') {
+    window.location.href = 'careers-employer.html';
+  } else {
+    window.location.href = 'careers-seeker.html';
+  }
+}
+
+function showError(msg) {
+  var el = document.getElementById('errorMsg');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('successMsg').style.display = 'none';
+}
+function showSuccess(msg) {
+  var el = document.getElementById('successMsg');
+  el.textContent = msg; el.style.display = 'block';
+  document.getElementById('errorMsg').style.display = 'none';
+}
+function clearMsgs() {
+  document.getElementById('errorMsg').style.display = 'none';
+  document.getElementById('successMsg').style.display = 'none';
+}
+function setLoading(btnId, loading) {
+  var btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  btn.textContent = loading ? 'Please wait...' : (btnId === 'loginBtn' ? 'Sign In' : 'Create Account');
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter') return;
+  if (_mode === 'login') doLogin();
+  else if (_mode === 'signup') doSignup();
+});
+</script>
+</body>
+</html>
